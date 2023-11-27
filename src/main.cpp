@@ -1,11 +1,13 @@
 ﻿#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 
+#pragma region fields
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -22,10 +24,10 @@ const char *fragmentShaderSource = "#version 330 core\n"
     "{\n"
     "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
     "}\n\0";
+#pragma endregion
 
 int main() {
-  // glfw: initialize and configure
-  // ------------------------------
+#pragma region glfw: initialize and configure
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -35,8 +37,10 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-  // glfw window creation
-  // --------------------
+#pragma endregion
+
+#pragma region glfw window creation
+
   GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
   if (window == NULL) {
     std::cout << "Failed to create GLFW window" << std::endl;
@@ -45,16 +49,18 @@ int main() {
   }
   glfwMakeContextCurrent(window);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+#pragma endregion
 
-  // glad: load all OpenGL function pointers
-  // ---------------------------------------
-  if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
+#pragma region glad: load all OpenGL function pointers
+
+  if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {// NOLINT(clang-diagnostic-cast-function-type-strict)
     std::cout << "Failed to initialize GLAD" << std::endl;
     return -1;
   }
+#pragma endregion
 
-  // build and compile our shader program
-  // ------------------------------------
+#pragma region build and compile our shader program
+
   // vertex shader
   unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
@@ -91,8 +97,10 @@ int main() {
   glDeleteShader(vertexShader);
   glDeleteShader(fragmentShader);
 
-  // set up vertex data (and buffer(s)) and configure vertex attributes
-  // ------------------------------------------------------------------
+#pragma endregion
+
+#pragma region set up vertex data (and buffer(s)) and configure vertex attributes
+
   float vertices[] = {
       0.5f, 0.5f, 0.0f,  // top right
       0.5f, -0.5f, 0.0f, // bottom right
@@ -103,7 +111,7 @@ int main() {
       0, 1, 3,              // first Triangle
       1, 2, 3               // second Triangle
   };
-  unsigned int VBO , VAO , EBO;
+  unsigned int VBO, VAO, EBO;
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1, &VBO);
   glGenBuffers(1, &EBO);
@@ -129,12 +137,15 @@ int main() {
   // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
   glBindVertexArray(0);
 
+#pragma endregion
+
+#pragma region draw in wireframe polygons
   // uncomment this call to draw in wireframe polygons.
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+#pragma endregion
 
-  // render loop
-  // -----------
+#pragma region render loop
   while (!glfwWindowShouldClose(window)) {
     // input
     // -----
@@ -157,26 +168,27 @@ int main() {
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
+#pragma endregion
 
-  // optional: de-allocate all resources once they've outlived their purpose:
-  // ------------------------------------------------------------------------
+#pragma region optional: de-allocate all resources once they have outlived their purpose
+
   glDeleteVertexArrays(1, &VAO);
   glDeleteBuffers(1, &VBO);
   glDeleteBuffers(1, &EBO);
   glDeleteProgram(shaderProgram);
+#pragma endregion
 
-  // glfw: terminate, clearing all previously allocated GLFW resources.
-  // ------------------------------------------------------------------
+#pragma region glfw: terminate, clearing all previously allocated GLFW resources
+
   glfwTerminate();
   return 0;
+#pragma endregion
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window) { if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true); }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   // make sure the viewport matches the new window dimensions; note that width and 
   // height will be significantly larger than specified on retina displays.

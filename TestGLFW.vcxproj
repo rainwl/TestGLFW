@@ -75,8 +75,8 @@
     <LibraryPath>C:\Users\22153\Documents\Project\TestGLFW\libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Users\22153\Documents\Project\TestGLFW\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\22153\Documents\Project\TestGLFW\libs;$(LibraryPath)</LibraryPath>
+    <IncludePath>.\include;$(IncludePath)</IncludePath>
+    <LibraryPath>.\libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
