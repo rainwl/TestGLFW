@@ -147,7 +147,10 @@
     <ClInclude Include="Shader.h" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="shader\" />
+    <Compile Include="shader\shader.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="shader\shader.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

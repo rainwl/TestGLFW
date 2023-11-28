@@ -22,13 +22,6 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 int main() {
-
-  glm::vec4 vec(1.0f, 1.0f, 1.0f, 1.0f);
-  glm::mat4 trans;
-  trans = glm::translate(trans, glm::vec3(1, 1, 0));
-  vec = trans * vec;
-  std::cout << vec.x << vec.y << vec.z << std::endl;
-
 #pragma region glfw: initialize and configure
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -154,7 +147,14 @@ int main() {
     // draw our first triangle
     //glUseProgram(shader_program);
 
+    glm::mat4 transform = glm::mat4(1.0f);
+    transform = glm::translate(transform,glm::vec3(-0.5f,-0.5f,0.0f));
+    transform = glm::rotate(transform,(float)glfwGetTime(),glm::vec3(0,0,1));
+    
+
     our_shader.use();
+    unsigned int transformLoc = glGetUniformLocation(our_shader.ID,"transform");
+    glUniformMatrix4fv(transformLoc,1,GL_FALSE,glm::value_ptr(transform));
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
