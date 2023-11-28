@@ -1,40 +1,21 @@
-﻿#include "../Shader.h"
+﻿#include "stb_image.h"
+#include "../Shader.h"
 
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
+#include <glad/glad.h>
 
 #include <iostream>
 #include <windows.h>
+#include<filesystem>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 void check_success(const unsigned int shader);
 void check_success_program(const unsigned int program);
 
-#pragma region fields
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-
-const char *vertexShaderSource = "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "layout (location = 1) in vec3 aColor;\n"
-    "out vec3 ourColor;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = vec4(aPos, 1.0);\n"
-    "   ourColor = aColor;\n"
-    "}\0";
-
-const char *fragmentShaderSource = "#version 330 core\n"
-    "out vec4 FragColor;\n"
-    "in vec3 ourColor;\n"
-    "void main()\n"
-    "{\n"
-    "   FragColor = vec4(ourColor, 1.0f);\n"
-    "}\n\0";
-#pragma endregion
 
 int main() {
 #pragma region glfw: initialize and configure
@@ -44,7 +25,7 @@ int main() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
 #pragma endregion
@@ -74,59 +55,80 @@ int main() {
 
   Shader our_shader(".\\shader\\shader.vs", ".\\shader\\shader.fs");
 
-  // // vertex shader
-  // const unsigned int vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-  // glShaderSource(vertex_shader, 1, &vertexShaderSource, nullptr);
-  // glCompileShader(vertex_shader);
-  // check_success(vertex_shader);
-  //
-  // // fragment shader
-  // const unsigned int fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-  // glShaderSource(fragment_shader, 1, &fragmentShaderSource, nullptr);
-  // glCompileShader(fragment_shader);
-  // check_success(fragment_shader);
-  //
-  // // link shaders
-  // const unsigned int shader_program = glCreateProgram();
-  // glAttachShader(shader_program, vertex_shader);
-  // glAttachShader(shader_program, fragment_shader);
-  // glLinkProgram(shader_program);
-  // check_success_program(shader_program);
-  //
-  // glDeleteShader(vertex_shader);
-  // glDeleteShader(fragment_shader);
-
 #pragma endregion
 
 #pragma region set up vertex data (and buffer(s)) and configure vertex attributes
 
+  // set up vertex data (and buffer(s)) and configure vertex attributes
+  // ------------------------------------------------------------------
   float vertices[] = {
-      // positions         // colors
-      0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
-      -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,// bottom left
-      0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f   // top 
-
+      // positions          // colors           // texture coords
+      0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // top right
+      0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+      -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,// bottom left
+      -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f  // top left
+  };
+  unsigned int indices[] = {
+      0, 1, 3,// first triangle
+      1, 2, 3 // second triangle
   };
 
-  unsigned int VBO , VAO;
+  unsigned int VBO, VAO, EBO;
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1, &VBO);
+  glGenBuffers(1, &EBO);
   // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
   glBindVertexArray(VAO);
 
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) 0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+  
+  // position attribute
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
-
-  glVertexAttribPointer(1, 3,GL_FLOAT,GL_FALSE, 6 * sizeof(float), (void *) (3 * sizeof(float)));
+  // color attribute
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
+  // texture coord attribute
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+  glEnableVertexAttribArray(2);
 
   //glUseProgram(shader_program);
 
 #pragma endregion
 
+#pragma region load and create a texture
+  unsigned int texture;
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
+  // set the texture wrapping parameters
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  // set texture filtering parameters
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  // load image, create texture and generate mipmaps
+  int width, height, nrChannels;
+  // The FileSystem::getPath(...) is part of the GitHub repository so we can find files on any IDE/platform; replace it with your own image path.
+  unsigned char *data = stbi_load(".\\resources\\wall.jpg", &width, &height, &nrChannels, 0);
+  if (data)
+  {
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+  }
+  else
+  {
+    std::cout << "Failed to load texture" << std::endl;
+  }
+  stbi_image_free(data);
+  
+
+#pragma endregion
+
+  
 #pragma region draw in wireframe polygons
   // uncomment this call to draw in wireframe polygons.
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -143,18 +145,15 @@ int main() {
     // ------
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-
+    // bind Texture
+    glBindTexture(GL_TEXTURE_2D, texture);
     // draw our first triangle
     //glUseProgram(shader_program);
 
     our_shader.use();
-    our_shader.setFloat("someUniform", 1.0f);
-
-    glBindVertexArray(VAO);// seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
-    //glDrawArrays(GL_TRIANGLES, 0, 6);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    // glBindVertexArray(0); // no need to unbind it every time 
-
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
     // -------------------------------------------------------------------------------
     glfwSwapBuffers(window);
@@ -166,6 +165,7 @@ int main() {
 
   glDeleteVertexArrays(1, &VAO);
   glDeleteBuffers(1, &VBO);
+  glDeleteBuffers(1, &EBO);
   //glDeleteProgram(shader_program);
 #pragma endregion
 
@@ -177,30 +177,34 @@ int main() {
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-void processInput(GLFWwindow *window) { if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true); }
+void processInput(GLFWwindow *window) {
+  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
+}
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-  // make sure the viewport matches the new window dimensions; note that width and 
+  // make sure the viewport matches the new window dimensions; note that width and
   // height will be significantly larger than specified on retina displays.
   glViewport(0, 0, width, height);
 }
 
 void check_success(const unsigned int shader) {
   int success;
-  glGetShaderiv(shader,GL_COMPILE_STATUS, &success);
+  glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
   if (!success) {
     char info_log[512];
     glGetShaderInfoLog(shader, 512, nullptr, info_log);
-    std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << info_log << std::endl;
+    std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
+              << info_log << std::endl;
   }
 }
 
 void check_success_program(const unsigned int program) {
   int success;
-  glGetProgramiv(program,GL_LINK_STATUS, &success);
+  glGetProgramiv(program, GL_LINK_STATUS, &success);
   if (!success) {
     char info_log[512];
     glGetProgramInfoLog(program, 512, nullptr, info_log);
-    std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << info_log << std::endl;
+    std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n"
+              << info_log << std::endl;
   }
 }
