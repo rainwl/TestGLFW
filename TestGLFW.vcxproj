@@ -145,6 +145,7 @@
     <ClInclude Include="include\glad\glad.h" />
     <ClInclude Include="include\stb_image.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="Shader.h" />
   </ItemGroup>
   <ItemGroup>
