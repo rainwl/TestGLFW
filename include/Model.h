@@ -11,8 +11,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <stb_image.h>
 
-#include <learnopengl/mesh.h>
-#include <learnopengl/shader.h>
+#include <Mesh.h>
+#include <Shader.h>
 
 #include <fstream>
 #include <iostream>
