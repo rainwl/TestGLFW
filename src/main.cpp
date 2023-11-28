@@ -24,10 +24,10 @@ const char *vertexShaderSource = "#version 330 core\n"
     "}\0";
 const char *fragmentShaderSource = "#version 330 core\n"
     "out vec4 FragColor;\n"
-    "in vec4 vertexColor;\n"
+    "uniform vec4 ourColor;\n"
     "void main()\n"
     "{\n"
-    "   FragColor = vertexColor;\n"
+    "   FragColor = ourColor;\n"
     "}\n\0";
 #pragma endregion
 
