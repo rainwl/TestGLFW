@@ -1,4 +1,6 @@
-﻿#include <glad/glad.h>
+﻿#include "../Shader.h"
+
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 
@@ -70,27 +72,29 @@ int main() {
 
 #pragma region build and compile our shader program
 
-  // vertex shader
-  const unsigned int vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertex_shader, 1, &vertexShaderSource, nullptr);
-  glCompileShader(vertex_shader);
-  check_success(vertex_shader);
+  Shader our_shader(".\\shader\\shader.vs", ".\\shader\\shader.fs");
 
-  // fragment shader
-  const unsigned int fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragment_shader, 1, &fragmentShaderSource, nullptr);
-  glCompileShader(fragment_shader);
-  check_success(fragment_shader);
-
-  // link shaders
-  const unsigned int shader_program = glCreateProgram();
-  glAttachShader(shader_program, vertex_shader);
-  glAttachShader(shader_program, fragment_shader);
-  glLinkProgram(shader_program);
-  check_success_program(shader_program);
-
-  glDeleteShader(vertex_shader);
-  glDeleteShader(fragment_shader);
+  // // vertex shader
+  // const unsigned int vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+  // glShaderSource(vertex_shader, 1, &vertexShaderSource, nullptr);
+  // glCompileShader(vertex_shader);
+  // check_success(vertex_shader);
+  //
+  // // fragment shader
+  // const unsigned int fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+  // glShaderSource(fragment_shader, 1, &fragmentShaderSource, nullptr);
+  // glCompileShader(fragment_shader);
+  // check_success(fragment_shader);
+  //
+  // // link shaders
+  // const unsigned int shader_program = glCreateProgram();
+  // glAttachShader(shader_program, vertex_shader);
+  // glAttachShader(shader_program, fragment_shader);
+  // glLinkProgram(shader_program);
+  // check_success_program(shader_program);
+  //
+  // glDeleteShader(vertex_shader);
+  // glDeleteShader(fragment_shader);
 
 #pragma endregion
 
@@ -119,7 +123,7 @@ int main() {
   glVertexAttribPointer(1, 3,GL_FLOAT,GL_FALSE, 6 * sizeof(float), (void *) (3 * sizeof(float)));
   glEnableVertexAttribArray(1);
 
-  glUseProgram(shader_program);
+  //glUseProgram(shader_program);
 
 #pragma endregion
 
@@ -141,7 +145,10 @@ int main() {
     glClear(GL_COLOR_BUFFER_BIT);
 
     // draw our first triangle
-    glUseProgram(shader_program);
+    //glUseProgram(shader_program);
+
+    our_shader.use();
+    our_shader.setFloat("someUniform", 1.0f);
 
     glBindVertexArray(VAO);// seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
     //glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -159,7 +166,7 @@ int main() {
 
   glDeleteVertexArrays(1, &VAO);
   glDeleteBuffers(1, &VBO);
-  glDeleteProgram(shader_program);
+  //glDeleteProgram(shader_program);
 #pragma endregion
 
 #pragma region glfw: terminate, clearing all previously allocated GLFW resources
