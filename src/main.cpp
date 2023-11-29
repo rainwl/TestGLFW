@@ -19,7 +19,7 @@
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
-void ProcessInput(GLFWwindow *window);
+void process_input(GLFWwindow *window);
 #pragma endregion
 
 #pragma region settings
@@ -46,9 +46,9 @@ int main() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
   GLFWwindow *window = glfwCreateWindow(scr_width, scr_height, "PhysicalSimulatedServer", nullptr, nullptr);
-
   glfwMakeContextCurrent(window);
-  glfwSwapInterval(0);
+
+  // glfwSwapInterval(0);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   glfwSetCursorPosCallback(window, mouse_callback);
   glfwSetScrollCallback(window, scroll_callback);
@@ -57,8 +57,8 @@ int main() {
   // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   // glad: load all OpenGL function pointers
-  // ---------------------------------------
-  if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
+  if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))// NOLINT(clang-diagnostic-cast-function-type-strict)
+  {
     std::cout << "Failed to initialize GLAD" << std::endl;
     return -1;
   }
@@ -150,11 +150,9 @@ int main() {
     const auto current_frame = static_cast<float>(glfwGetTime());
     delta_time = current_frame - last_frame;
     last_frame = current_frame;
-
-    ProcessInput(window);
-
+    process_input(window);
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-    glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+    glClearColor(0.7137f, 0.7333f, 0.7686f, 1.0f); // rgb(182, 187, 196)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     our_shader.use();
@@ -204,9 +202,9 @@ int main() {
   glfwTerminate();
   return 0;
 }
-
+#pragma region implement
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-void ProcessInput(GLFWwindow *window) {
+void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
 
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera.ProcessKeyboard(FORWARD, delta_time);
@@ -244,3 +242,4 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn) {
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) { camera.ProcessMouseScroll(static_cast<float>(yoffset)); }
+#pragma endregion
