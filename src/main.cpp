@@ -104,7 +104,8 @@ int main() {
   io.ConfigFlags |= ImGuiViewportFlags_NoDecoration;
   io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
   io.ConfigFlags |= ImGuiCol_DockingEmptyBg;
-  ImGui::StyleColorsDark();
+  // ImGui::StyleColorsDark();
+  ImGui::StyleColorsLight();
   ImGuiStyle &style = ImGui::GetStyle();
   style.WindowRounding = 12;
   style.ChildRounding = 12;
@@ -134,19 +135,22 @@ int main() {
   colors[ImGuiCol_ResizeGripActive] = ImVec4(0.74f, 0.74f, 0.74f, 0.95f);
   colors[ImGuiCol_Tab] = ImVec4(0.64f, 0.64f, 0.64f, 0.86f);
   colors[ImGuiCol_TabHovered] = ImVec4(0.24f, 0.24f, 0.24f, 0.80f);
-  colors[ImGuiCol_TabActive] = ImVec4(0.68f, 0.72f, 0.76f, 1.00f);
+  colors[ImGuiCol_TabActive] = ImVec4(0.81f, 0.81f, 0.81f, 1.00f);
   colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.66f, 0.66f, 0.66f, 1.00f);
   colors[ImGuiCol_DockingPreview] = ImVec4(0.49f, 0.49f, 0.49f, 0.70f);
   colors[ImGuiCol_TextSelectedBg] = ImVec4(0.71f, 0.71f, 0.71f, 0.35f);
   colors[ImGuiCol_NavHighlight] = ImVec4(0.52f, 0.52f, 0.52f, 1.00f);
   colors[ImGuiCol_FrameBg] = ImVec4(0.52f, 0.52f, 0.52f, 0.54f);
   colors[ImGuiCol_Header] = ImVec4(0.67f, 0.67f, 0.67f, 0.31f);
+  colors[ImGuiCol_TableHeaderBg] = ImVec4(0.38f, 0.38f, 0.38f, 1.00f);
+  colors[ImGuiCol_DragDropTarget] = ImVec4(0.64f, 1.00f, 0.85f, 0.95f);
 
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init("#version 330");
 #pragma endregion
 
   while (!glfwWindowShouldClose(window)) {
+#pragma region init
     const auto current_frame = static_cast<float>(glfwGetTime());
     delta_time = current_frame - last_frame;
     last_frame = current_frame;
@@ -154,41 +158,47 @@ int main() {
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
     glClearColor(0.7137f, 0.7333f, 0.7686f, 1.0f);// rgb(182, 187, 196)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+#pragma endregion
 
+#pragma region model do MVP
     our_shader.use();
 
     // view/projection transformations
-    glm::mat4 projection = glm::perspective(glm::radians(camera.cam_zoom), (float) scr_width / (float) scr_height, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.cam_zoom), static_cast<float>(scr_width) / static_cast<float>(scr_height), 0.1f, 100.0f);
     glm::mat4 view = camera.get_view_matrix();
     our_shader.setMat4("projection", projection);
     our_shader.setMat4("view", view);
 
     // render the loaded model
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));// translate it down so it's at the center of the scene
-    model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));    // it's a bit too big for our scene, so scale it down
+    auto model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(0.0f, -10.0f, 0.0f));// translate it down so it's at the center of the scene
+    model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));      // it's a bit too big for our scene, so scale it down
     our_shader.setMat4("model", model);
     our_model.Draw(our_shader);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#pragma endregion
 
+#pragma region ImGui
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-
     ImGui::DockSpaceOverViewport();
 
     draw_gui();
 
     ImGui::Begin("Scene");
-    ImGui::Image((void *) (intptr_t) texture, ImVec2{scr_width, scr_height}, ImVec2{0, 1}, ImVec2{1, 0});
+    ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(texture)), ImVec2{scr_width, scr_height}, ImVec2{0, 1}, ImVec2{1, 0});// NOLINT(performance-no-int-to-ptr)
     ImGui::End();
 
-    // ImGui::ShowDemoWindow();
+    ImGui::ShowDemoWindow();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+#pragma endregion
+
+#pragma region end
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
       GLFWwindow *backup_current_context = glfwGetCurrentContext();
       ImGui::UpdatePlatformWindows();
@@ -198,10 +208,12 @@ int main() {
 
     glfwSwapBuffers(window);
     glfwPollEvents();
+#pragma endregion
   }
   glfwTerminate();
   return 0;
 }
+
 #pragma region implement
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 void process_input(GLFWwindow *window) {
