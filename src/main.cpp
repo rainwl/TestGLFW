@@ -17,7 +17,7 @@
 
 #pragma region inline function
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+void mouse_callback(GLFWwindow *window, double x_pos_in, double y_pos_in);  
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void process_input(GLFWwindow *window);
 #pragma endregion
@@ -152,14 +152,14 @@ int main() {
     last_frame = current_frame;
     process_input(window);
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-    glClearColor(0.7137f, 0.7333f, 0.7686f, 1.0f); // rgb(182, 187, 196)
+    glClearColor(0.7137f, 0.7333f, 0.7686f, 1.0f);// rgb(182, 187, 196)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     our_shader.use();
 
     // view/projection transformations
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) scr_width / (float) scr_height, 0.1f, 100.0f);
-    glm::mat4 view = camera.GetViewMatrix();
+    glm::mat4 projection = glm::perspective(glm::radians(camera.cam_zoom), (float) scr_width / (float) scr_height, 0.1f, 100.0f);
+    glm::mat4 view = camera.get_view_matrix();
     our_shader.setMat4("projection", projection);
     our_shader.setMat4("view", view);
 
@@ -207,10 +207,10 @@ int main() {
 void process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
 
-  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera.ProcessKeyboard(FORWARD, delta_time);
-  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera.ProcessKeyboard(BACKWARD, delta_time);
-  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera.ProcessKeyboard(LEFT, delta_time);
-  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) camera.ProcessKeyboard(RIGHT, delta_time);
+  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera.process_keyboard(k_forward, delta_time);
+  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera.process_keyboard(k_backward, delta_time);
+  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera.process_keyboard(k_left, delta_time);
+  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) camera.process_keyboard(k_right, delta_time);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -221,25 +221,26 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 }
 
 // glfw: whenever the mouse moves, this callback is called
-void mouse_callback(GLFWwindow *window, double xposIn, double yposIn) {
-  float xpos = static_cast<float>(xposIn);
-  float ypos = static_cast<float>(yposIn);
+void mouse_callback(GLFWwindow *window, const double x_pos_in, const double y_pos_in) {
+  const auto x_pos = static_cast<float>(x_pos_in);
+  const auto y_pos = static_cast<float>(y_pos_in);
 
   if (first_mouse) {
-    last_x = xpos;
-    last_y = ypos;
+    last_x = x_pos;
+    last_y = y_pos;
     first_mouse = false;
   }
 
-  float xoffset = xpos - last_x;
-  float yoffset = last_y - ypos;// reversed since y-coordinates go from bottom to top
+  if (glfwGetMouseButton(window,GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+    const float x_offset = x_pos - last_x;
+    const float y_offset = last_y - y_pos;
+    camera.process_mouse_movement(x_offset, y_offset);
+  }
 
-  last_x = xpos;
-  last_y = ypos;
-
-  camera.ProcessMouseMovement(xoffset, yoffset);
+  last_x = x_pos;
+  last_y = y_pos;
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) { camera.ProcessMouseScroll(static_cast<float>(yoffset)); }
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) { camera.process_mouse_scroll(static_cast<float>(yoffset)); }
 #pragma endregion
