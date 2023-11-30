@@ -52,8 +52,8 @@ public:
   glm::mat4 get_view_matrix() const { return glm::lookAt(cam_position, cam_position + cam_front, cam_up); }
 
   // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
-  void process_keyboard(const camera_movement direction, const float deltaTime) {
-    const float velocity = cam_movement_speed * deltaTime;
+  void process_keyboard(const camera_movement direction, const float delta_time) {
+    const float velocity = cam_movement_speed * delta_time;
     if (direction == k_forward) cam_position += cam_front * velocity;
     if (direction == k_backward) cam_position -= cam_front * velocity;
     if (direction == k_left) cam_position -= cam_right * velocity;

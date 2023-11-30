@@ -17,8 +17,8 @@
 
 #pragma region inline function
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-void mouse_callback(GLFWwindow *window, double x_pos_in, double y_pos_in);  
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
+void mouse_callback(GLFWwindow *window, double x_pos_in, double y_pos_in);
+void scroll_callback(GLFWwindow *window, double x_offset, double y_offset);
 void process_input(GLFWwindow *window);
 #pragma endregion
 
@@ -214,7 +214,7 @@ void process_input(GLFWwindow *window) {
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+void framebuffer_size_callback(GLFWwindow *window, const int width, const int height) {
   // make sure the viewport matches the new window dimensions; note that width and
   // height will be significantly larger than specified on retina displays.
   glViewport(0, 0, width, height);
@@ -242,5 +242,5 @@ void mouse_callback(GLFWwindow *window, const double x_pos_in, const double y_po
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) { camera.process_mouse_scroll(static_cast<float>(yoffset)); }
+void scroll_callback(GLFWwindow *window, double x_offset, const double y_offset) { camera.process_mouse_scroll(static_cast<float>(y_offset)); }
 #pragma endregion
