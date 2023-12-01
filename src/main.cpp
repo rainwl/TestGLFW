@@ -1,6 +1,7 @@
 ﻿#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -10,10 +11,15 @@
 #include "imgui_impl_opengl3.h"
 
 #include <Camera.h>
-#include <Shader.h>
 #include <Model.h>
-#include <mygui.h>
+#include <Shader.h>
 #include <iostream>
+#include <mygui.h>
+
+#include <ecal/ecal.h>
+#include <ecal/msg/protobuf/publisher.h>
+#include <fusion.pb.h>
+#include <random>
 
 #pragma region inline function
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -37,6 +43,11 @@ bool first_mouse = true;
 float delta_time = 0.0f;
 float last_frame = 0.0f;
 #pragma endregion
+
+
+int count{0};
+std::vector<float> data;
+pb::FusionData::FusionData fusion_data;
 
 int main() {
 #pragma region glfw init
@@ -73,12 +84,16 @@ int main() {
   Shader our_shader("./Shader/shader.vs", "./Shader/shader.fs");
   // load models
   Model our_model("./resources/objects/backpack/backpack.obj");
+  Model endoscope_model("./resources/objects/backpack/endoscope.obj");
+  Model tube_model("./resources/objects/backpack/tubeC.obj");
+  Model lower_model("./resources/objects/backpack/lower.obj");
+  Model upper_model("./resources/objects/backpack/upper.obj");
   // draw in wireframe
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 #pragma endregion
 
 #pragma region texture
-  GLuint FBO , texture;
+  GLuint FBO, texture;
   glGenFramebuffers(1, &FBO);
   glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 
@@ -149,6 +164,21 @@ int main() {
   ImGui_ImplOpenGL3_Init("#version 330");
 #pragma endregion
 
+#pragma region eCAL
+  eCAL::Initialize(1, nullptr, "Fusion Publisher");
+  eCAL::Process::SetState(proc_sev_healthy, proc_sev_level1, "healthy");
+  const eCAL::CPublisher publisher("fusion");
+
+#pragma endregion
+
+#pragma region Random
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_real_distribution<float> dis_0_10(0.0, 10.0);
+  std::uniform_real_distribution<float> dis_330_360(330.0, 360.0);
+  std::uniform_real_distribution<float> dis_10_15(10.0, 15.0);
+  uniform_real_distribution<float> dis_0_1(0.0, 1.0);
+#pragma endregion
   while (!glfwWindowShouldClose(window)) {
 #pragma region init
     const auto current_frame = static_cast<float>(glfwGetTime());
@@ -175,6 +205,10 @@ int main() {
     model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));      // it's a bit too big for our scene, so scale it down
     our_shader.setMat4("model", model);
     our_model.Draw(our_shader);
+    endoscope_model.Draw(our_shader);
+    tube_model.Draw((our_shader));
+    lower_model.Draw((our_shader));
+    upper_model.Draw(our_shader);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 #pragma endregion
@@ -198,6 +232,75 @@ int main() {
 
 #pragma endregion
 
+
+    #pragma region mutable_ set_
+    fusion_data.mutable_endoscope_pos()->set_x(dis_0_10(gen));
+    fusion_data.mutable_endoscope_pos()->set_y(dis_0_10(gen));
+    fusion_data.mutable_endoscope_pos()->set_z(dis_0_10(gen));
+
+    fusion_data.mutable_endoscope_euler()->set_x(dis_330_360(gen));
+    fusion_data.mutable_endoscope_euler()->set_y(dis_10_15(gen));
+    fusion_data.mutable_endoscope_euler()->set_z(dis_10_15(gen));
+
+    fusion_data.mutable_tube_pos()->set_x(dis_0_10(gen));
+    fusion_data.mutable_tube_pos()->set_y(dis_0_10(gen));
+    fusion_data.mutable_tube_pos()->set_z(dis_0_10(gen));
+
+    fusion_data.mutable_tube_euler()->set_x(dis_330_360(gen));
+    fusion_data.mutable_tube_euler()->set_y(dis_10_15(gen));
+    fusion_data.mutable_tube_euler()->set_x(dis_10_15(gen));
+
+    fusion_data.mutable_offset()->set_endoscope_offset(-1);
+    fusion_data.mutable_offset()->set_tube_offset(-3);
+    fusion_data.mutable_offset()->set_instrument_switch(60);
+    fusion_data.mutable_offset()->set_animation_value(dis_0_1(gen));
+    fusion_data.mutable_offset()->set_pivot_offset(2);
+
+    fusion_data.mutable_rot_coord()->set_x(0);
+    fusion_data.mutable_rot_coord()->set_y(0.7071068f);
+    fusion_data.mutable_rot_coord()->set_z(0);
+    fusion_data.mutable_rot_coord()->set_w(0.7071068f);
+
+    fusion_data.mutable_pivot_pos()->set_x(-10);
+    fusion_data.mutable_pivot_pos()->set_y(4.9f);
+    fusion_data.mutable_pivot_pos()->set_z(-0.9f);
+
+    fusion_data.set_ablation_count(0);
+
+    fusion_data.mutable_haptic()->set_haptic_state(3);
+    fusion_data.mutable_haptic()->set_haptic_offset(-1);
+    fusion_data.mutable_haptic()->set_haptic_force(2);
+
+    fusion_data.set_hemostasis_count(0);
+    fusion_data.set_hemostasis_index(0);
+
+    fusion_data.mutable_soft_tissue()->set_liga_flavum(1);
+    fusion_data.mutable_soft_tissue()->set_disc_yellow_space(1);
+    fusion_data.mutable_soft_tissue()->set_veutro_vessel(1);
+    fusion_data.mutable_soft_tissue()->set_fat(1);
+    fusion_data.mutable_soft_tissue()->set_fibrous_rings(1);
+    fusion_data.mutable_soft_tissue()->set_nucleus_pulposus(1);
+    fusion_data.mutable_soft_tissue()->set_p_longitudinal_liga(1);
+    fusion_data.mutable_soft_tissue()->set_dura_mater(1);
+    fusion_data.mutable_soft_tissue()->set_nerve_root(1);
+
+    fusion_data.set_nerve_root_dance(0);
+
+    fusion_data.mutable_rongeur_pos()->set_x(dis_0_10(gen));
+    fusion_data.mutable_rongeur_pos()->set_y(dis_0_10(gen));
+    fusion_data.mutable_rongeur_pos()->set_z(dis_0_10(gen));
+
+    fusion_data.mutable_rongeur_rot()->set_x(dis_330_360(gen));
+    fusion_data.mutable_rongeur_rot()->set_y(dis_10_15(gen));
+    fusion_data.mutable_rongeur_rot()->set_z(dis_10_15(gen));
+#pragma endregion
+    const int data_size = fusion_data.ByteSizeLong();  // NOLINT(clang-diagnostic-shorten-64-to-32, bugprone-narrowing-conversions, cppcoreguidelines-narrowing-conversions)
+    auto data = std::make_unique<uint8_t[]>(data_size);// NOLINT(clang-diagnostic-shadow)
+    fusion_data.SerializePartialToArray(data.get(), data_size);
+
+    const int code = publisher.Send(data.get(), data_size);// NOLINT(clang-diagnostic-shorten-64-to-32, bugprone-narrowing-conversions, cppcoreguidelines-narrowing-conversions)
+    if (code != data_size) { std::cout << "failure\n"; }
+
 #pragma region end
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
       GLFWwindow *backup_current_context = glfwGetCurrentContext();
@@ -211,6 +314,7 @@ int main() {
 #pragma endregion
   }
   glfwTerminate();
+  eCAL::Finalize();
   return 0;
 }
 
@@ -243,7 +347,7 @@ void mouse_callback(GLFWwindow *window, const double x_pos_in, const double y_po
     first_mouse = false;
   }
 
-  if (glfwGetMouseButton(window,GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+  if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
     const float x_offset = x_pos - last_x;
     const float y_offset = last_y - y_pos;
     camera.process_mouse_movement(x_offset, y_offset);

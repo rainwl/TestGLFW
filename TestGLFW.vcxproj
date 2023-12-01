@@ -75,7 +75,7 @@
     <LibraryPath>C:\Users\22153\Documents\Project\TestGLFW\libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>.\ImGUI;.\include;$(IncludePath)</IncludePath>
+    <IncludePath>.\ImGUI;.\protobuf;.\include;$(IncludePath)</IncludePath>
     <LibraryPath>.\libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -133,7 +133,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc143-mt.lib;ecal_core.lib;libprotobuf.lib;ecal_proto.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -144,6 +144,11 @@
     <ClCompile Include="ImGUI\imgui_impl_opengl3.cpp" />
     <ClCompile Include="ImGUI\imgui_tables.cpp" />
     <ClCompile Include="ImGUI\imgui_widgets.cpp" />
+    <ClCompile Include="protobuf\coord.pb.cc" />
+    <ClCompile Include="protobuf\fusion.pb.cc" />
+    <ClCompile Include="protobuf\haptic.pb.cc" />
+    <ClCompile Include="protobuf\offset.pb.cc" />
+    <ClCompile Include="protobuf\tissue.pb.cc" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="stb_image.cpp" />
@@ -165,6 +170,11 @@
     <ClInclude Include="include\mygui.h" />
     <ClInclude Include="include\Shader.h" />
     <ClInclude Include="include\stb_image.h" />
+    <ClInclude Include="protobuf\coord.pb.h" />
+    <ClInclude Include="protobuf\fusion.pb.h" />
+    <ClInclude Include="protobuf\haptic.pb.h" />
+    <ClInclude Include="protobuf\offset.pb.h" />
+    <ClInclude Include="protobuf\tissue.pb.h" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="shader\shader.fs" />
@@ -172,6 +182,13 @@
   <ItemGroup>
     <Content Include="assimp-vc143-mt.dll" />
     <Content Include="shader\shader.vs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="protobuf\coord.proto" />
+    <None Include="protobuf\fusion.proto" />
+    <None Include="protobuf\haptic.proto" />
+    <None Include="protobuf\offset.proto" />
+    <None Include="protobuf\tissue.proto" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

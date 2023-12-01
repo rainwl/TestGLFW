@@ -3,17 +3,14 @@
 #define MESH_H
 
 #include <glad/glad.h>// holds all OpenGL type declarations
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
 #include <Shader.h>
-
 #include <string>
 #include <vector>
 using namespace std;
 
-#define MAX_BONE_INFLUENCE 4
+#define MAX_BONE_INFLUENCE 4  // NOLINT(modernize-macro-to-enum)
 
 struct Vertex {
   // position
@@ -53,7 +50,7 @@ class Mesh {
     this->textures = textures;
 
     // now that we have all the required data, set the vertex buffers and its attribute pointers.
-    setupMesh();
+    setup_mesh();
   }
 
   // render the mesh
@@ -97,7 +94,7 @@ class Mesh {
   unsigned int VBO, EBO;
 
   // initializes all the buffer objects/arrays
-  void setupMesh() {
+  void setup_mesh() {
     // create buffers/arrays
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
