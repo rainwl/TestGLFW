@@ -7,6 +7,10 @@
 #include <iostream>
 #include <windows.h>
 #include<filesystem>
+#ifdef _WIN32
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+#endif
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -16,23 +20,30 @@ void check_success_program(const unsigned int program);
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-
+GLFWmonitor *monitor;
 int main() {
 #pragma region glfw: initialize and configure
   glfwInit();
+  monitor = glfwGetPrimaryMonitor();
+  const GLFWvidmode *mode = glfwGetVideoMode(monitor);
+  // 设置窗口提示为无边框的全屏窗口
+  glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+  glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+  glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+  glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+  glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);// 无边框
+
+
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-#ifdef __APPLE__
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
 
 #pragma endregion
 
 #pragma region glfw window creation
 
-  GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+  GLFWwindow *window = glfwCreateWindow(mode->width, mode->height, "Loading", NULL, NULL);
   if (window == NULL) {
     std::cout << "Failed to create GLFW window" << std::endl;
     glfwTerminate();
@@ -40,6 +51,14 @@ int main() {
   }
   glfwMakeContextCurrent(window);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+  glfwSwapInterval(0);
+
+  #ifdef _WIN32
+  // 仅当在Windows平台上时尝试设置窗口为最上层
+  HWND hwnd = glfwGetWin32Window(window);
+  SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+#endif
+
 #pragma endregion
 
 #pragma region glad: load all OpenGL function pointers
@@ -113,7 +132,7 @@ int main() {
   // load image, create texture and generate mipmaps
   int width, height, nrChannels;
   // The FileSystem::getPath(...) is part of the GitHub repository so we can find files on any IDE/platform; replace it with your own image path.
-  unsigned char *data = stbi_load(".\\resources\\wall.jpg", &width, &height, &nrChannels, 0);
+  unsigned char *data = stbi_load(".\\resources\\x.jpg", &width, &height, &nrChannels, 0);
   if (data)
   {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -134,8 +153,19 @@ int main() {
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 #pragma endregion
 
+  double startTime = glfwGetTime();
+
 #pragma region render loop
   while (!glfwWindowShouldClose(window)) {
+
+     double currentTime = glfwGetTime();
+
+    // Check if 30 seconds have passed
+    if (currentTime - startTime > 30.0) {
+      glfwSetWindowShouldClose(window, true);
+    }
+
+
     // input
     // -----
     processInput(window);
@@ -155,6 +185,8 @@ int main() {
     
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
     // -------------------------------------------------------------------------------
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);// 隐藏鼠标光标
+
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
