@@ -63,10 +63,10 @@ int main() {
   // ------------------------------------------------------------------
   float vertices[] = {
       // positions          // colors           // texture coords
-      0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // top right
-      0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
-      -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,// bottom left
-      -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f  // top left
+      1, 1, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // top right
+      1, -1, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+      -1, -1, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,// bottom left
+      -1, 1, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f  // top left
   };
   unsigned int indices[] = {
       0, 1, 3,// first triangle
@@ -128,7 +128,6 @@ int main() {
 
 #pragma endregion
 
-  
 #pragma region draw in wireframe polygons
   // uncomment this call to draw in wireframe polygons.
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
