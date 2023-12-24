@@ -21,7 +21,7 @@ void check_success_program(const unsigned int program);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 GLFWmonitor *monitor;
-int main() {
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
 #pragma region glfw: initialize and configure
   glfwInit();
   monitor = glfwGetPrimaryMonitor();
