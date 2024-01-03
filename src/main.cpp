@@ -12,17 +12,19 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
+#include "chrono"
 #ifdef _WIN32
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 #endif
 
+std::chrono::time_point<std::chrono::steady_clock> GetTime();
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 void check_success(const unsigned int shader);
 void check_success_program(const unsigned int program);
-
-// settings
+float CalculateLoadingPercentage(const std::chrono::time_point<std::chrono::steady_clock> &start_time, int duration_seconds);
+    // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 GLFWmonitor *monitor;
@@ -165,18 +167,30 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
   ImGui::CreateContext(nullptr);
   ImGuiIO &io = ImGui::GetIO();
   (void) io;
+  io.Fonts->AddFontFromFileTTF("JetBrainsMono-Regular.ttf", 36, nullptr, io.Fonts->GetGlyphRangesChineseFull());
 
-  ImGui::StyleColorsDark();
+  ImGui::StyleColorsLight();
+  ImGuiStyle &style = ImGui::GetStyle();
+
+  ImVec4 *colors = style.Colors;
+  colors[ImGuiCol_WindowBg] = ImVec4(0.94f, 0.94f, 0.94f, 0.00f);
+  colors[ImGuiCol_Border] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+  colors[ImGuiCol_TitleBg] = ImVec4(0.96f, 0.96f, 0.96f, 0.00f);
+  colors[ImGuiCol_TitleBgActive] = ImVec4(0.82f, 0.82f, 0.82f, 0.00f);
+
+
+
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init("#version 330");
 #pragma endregion
 
   double startTime = glfwGetTime();
-
+  auto start_time = GetTime();
 #pragma region render loop
   while (!glfwWindowShouldClose(window)) {
 
      double currentTime = glfwGetTime();
+
 
     // Check if 30 seconds have passed
     if (currentTime - startTime > 30.0) {
@@ -204,6 +218,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+
+    // 设定窗口位置
+    ImGui::SetNextWindowPos(ImVec2(710, 700), ImGuiCond_Always);
+    // 设定窗口大小
+    ImGui::SetNextWindowSize(ImVec2(500, 100), ImGuiCond_Always);
+    ImGui::Begin("", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
+
+    float loading_percentage = CalculateLoadingPercentage(start_time, 30);// 30秒钟
+
+    // 显示加载文本
+    ImGui::Text("Loading: %.0f%%", loading_percentage);
+    
+    //ImGui::Text("Loading");
+    ImGui::End();
+
 
 
     ImGui::ShowDemoWindow();
@@ -266,4 +295,16 @@ void check_success_program(const unsigned int program) {
     std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n"
               << info_log << std::endl;
   }
+}
+std::chrono::time_point<std::chrono::steady_clock> GetTime() {
+  return std::chrono::steady_clock::now();
+}
+
+// 根据开始时间和当前时间计算加载进度的函数
+float CalculateLoadingPercentage(const std::chrono::time_point<std::chrono::steady_clock> &start_time, int duration_seconds) {
+  auto now = GetTime();
+  auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time).count();
+  float progress = (elapsed / static_cast<float>(duration_seconds)) * 100.0f;
+  progress = (progress > 100.0f) ? 100.0f : progress;// Clamp to 100%
+  return progress;
 }
