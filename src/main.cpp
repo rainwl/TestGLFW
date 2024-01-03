@@ -7,6 +7,11 @@
 #include <iostream>
 #include <windows.h>
 #include<filesystem>
+
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 #ifdef _WIN32
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
@@ -21,17 +26,18 @@ void check_success_program(const unsigned int program);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 GLFWmonitor *monitor;
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
 #pragma region glfw: initialize and configure
   glfwInit();
   monitor = glfwGetPrimaryMonitor();
   const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-  // 设置窗口提示为无边框的全屏窗口
+  // Set the window to a full-screen window without borders
   glfwWindowHint(GLFW_RED_BITS, mode->redBits);
   glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
   glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
   glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
-  glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);// 无边框
+  glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);// no borders
 
 
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -153,6 +159,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 #pragma endregion
 
+#pragma region imgui
+
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext(nullptr);
+  ImGuiIO &io = ImGui::GetIO();
+  (void) io;
+
+  ImGui::StyleColorsDark();
+  ImGui_ImplGlfw_InitForOpenGL(window, true);
+  ImGui_ImplOpenGL3_Init("#version 330");
+#pragma endregion
+
   double startTime = glfwGetTime();
 
 #pragma region render loop
@@ -182,7 +200,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     our_shader.use();
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+
+    ImGui::ShowDemoWindow();
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
     // -------------------------------------------------------------------------------
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);// 隐藏鼠标光标
