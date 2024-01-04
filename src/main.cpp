@@ -60,6 +60,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
   glfwMakeContextCurrent(window);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   glfwSwapInterval(0);
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);// 隐藏鼠标光标
 
   #ifdef _WIN32
   // 仅当在Windows平台上时尝试设置窗口为最上层
@@ -167,7 +168,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
   ImGui::CreateContext(nullptr);
   ImGuiIO &io = ImGui::GetIO();
   (void) io;
-  io.Fonts->AddFontFromFileTTF("JetBrainsMono-Regular.ttf", 36, nullptr, io.Fonts->GetGlyphRangesChineseFull());
+ // io.MouseDrawCursor = true;
+  io.Fonts->AddFontFromFileTTF("simkai.ttf", 60, nullptr, io.Fonts->GetGlyphRangesChineseFull());
+  io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 
   ImGui::StyleColorsLight();
   ImGuiStyle &style = ImGui::GetStyle();
@@ -186,11 +189,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
   double startTime = glfwGetTime();
   auto start_time = GetTime();
+
 #pragma region render loop
   while (!glfwWindowShouldClose(window)) {
-
      double currentTime = glfwGetTime();
-
 
     // Check if 30 seconds have passed
     if (currentTime - startTime > 30.0) {
@@ -215,34 +217,45 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
+    //io.MouseDrawCursor = true;
+
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    // 设定窗口位置
-    ImGui::SetNextWindowPos(ImVec2(710, 700), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(635, 600), ImGuiCond_Always);
     // 设定窗口大小
-    ImGui::SetNextWindowSize(ImVec2(500, 100), ImGuiCond_Always);
-    ImGui::Begin("", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
+    ImGui::SetNextWindowSize(ImVec2(650, 300), ImGuiCond_Always);
+    ImGui::Begin("", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoInputs);
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.211f, 0.18f, 0.18f, 0.5f));
+    ImGui::Text("系统初始化中,请勿操作");
+
+    ImGui::End();
+
+    // 设定窗口位置
+    ImGui::SetNextWindowPos(ImVec2(900, 700), ImGuiCond_Always);
+    // 设定窗口大小
+    ImGui::SetNextWindowSize(ImVec2(50, 300), ImGuiCond_Always);
+    ImGui::Begin("", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoInputs);
 
     float loading_percentage = CalculateLoadingPercentage(start_time, 30);// 30秒钟
 
-    // 显示加载文本
-    ImGui::Text("Loading: %.0f%%", loading_percentage);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.211f, 0.18f, 0.18f, 0.5f));
+    ImGui::Text("%.0f%%", loading_percentage);
     
-    //ImGui::Text("Loading");
     ImGui::End();
 
 
 
-    ImGui::ShowDemoWindow();
+   // ImGui::ShowDemoWindow();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
     // -------------------------------------------------------------------------------
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);// 隐藏鼠标光标
+    
 
     glfwSwapBuffers(window);
     glfwPollEvents();
@@ -258,6 +271,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #pragma endregion
 
 #pragma region glfw: terminate, clearing all previously allocated GLFW resources
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
 
   glfwTerminate();
   return 0;
