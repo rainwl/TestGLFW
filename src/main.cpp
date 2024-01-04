@@ -195,7 +195,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
      double currentTime = glfwGetTime();
 
     // Check if 30 seconds have passed
-    if (currentTime - startTime > 30.0) {
+    if (currentTime - startTime > 35.0) {
       glfwSetWindowShouldClose(window, true);
     }
 
@@ -239,7 +239,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     ImGui::SetNextWindowSize(ImVec2(50, 300), ImGuiCond_Always);
     ImGui::Begin("", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoInputs);
 
-    float loading_percentage = CalculateLoadingPercentage(start_time, 30);// 30秒钟
+    float loading_percentage = CalculateLoadingPercentage(start_time, 35);// 30秒钟
 
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.211f, 0.18f, 0.18f, 0.5f));
     ImGui::Text("%.0f%%", loading_percentage);
